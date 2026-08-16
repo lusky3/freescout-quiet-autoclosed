@@ -1,0 +1,13 @@
+---
+# Keep a Changelog requires the same section headings ("### Added",
+# "### Fixed", ...) to repeat under every version, so MD024's default
+# "no duplicate headings anywhere" is unsatisfiable for CHANGELOG.md.
+# siblings_only keeps the check meaningful - duplicates under the *same*
+# parent are still reported - while allowing the repetition the format is
+# built on.
+MD024:
+  siblings_only: true
+
+# Line length is enforced for code by phpcs, not for prose. Wrapping prose at
+# a fixed column makes diffs noisier without making anything easier to read.
+MD013: false

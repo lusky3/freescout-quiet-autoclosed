@@ -42,7 +42,7 @@
     "sort-packages": true
   },
   "scripts": {
-    "lint": "phpcs -n",
+    "lint": "phpcs",
     "test": "phpunit --testsuite Unit"
   }
 }

@@ -43,7 +43,7 @@ class QuietAutoClosedServiceProvider extends ServiceProvider
      *
      * @see \Modules\Workflows\Entities\Workflow::WF_USER_EMAIL
      */
-    const WF_USER_EMAIL = 'fsworkflow@example.org';
+    public const WF_USER_EMAIL = 'fsworkflow@example.org';
 
     /**
      * Shared between both hooks so they agree, and so the second one costs no
@@ -65,7 +65,7 @@ class QuietAutoClosedServiceProvider extends ServiceProvider
      *
      * @var int|null|false
      */
-    protected static $workflow_user_id = false;
+    protected static $workflowUserId = false;
 
     /**
      * Boot the application events.
@@ -101,12 +101,22 @@ class QuietAutoClosedServiceProvider extends ServiceProvider
      * fetch-emails run; swallowing it costs at most one un-suppressed
      * notification.
      *
+     * PHPMD's StaticAccess rule is right in general and inapplicable here:
+     * \Eventy is FreeScout's hook facade and exposes no instance API, so
+     * there is nothing to inject and no alternative call style to prefer.
+     *
+     * @SuppressWarnings(PHPMD.StaticAccess)
+     *
      * @return void
      */
     public function hooks()
     {
         // Core recipients, resolved in Subscription::usersToNotify().
-        \Eventy::addFilter('subscription.subscriptions', function ($subscriptions, $conversation, $events, $thread) {
+        //
+        // Eventy still hands this filter four arguments; the closure simply
+        // does not name the fourth ($thread), because this hook is given the
+        // conversation directly and has no use for it.
+        \Eventy::addFilter('subscription.subscriptions', function ($subscriptions, $conversation, $events) {
             try {
                 if (self::decider()->shouldSuppress($events, $conversation)) {
                     return collect();
@@ -149,7 +159,7 @@ class QuietAutoClosedServiceProvider extends ServiceProvider
         // bounds the memo to a single notification pass, which is the only
         // scope its answers are guaranteed valid for - and keeps it from
         // growing for the length of a long freescout:fetch-emails run.
-        \Eventy::addAction('subscription.process_events', function ($notify) {
+        \Eventy::addAction('subscription.process_events', function () {
             self::flushMemo();
         }, 50, 1);
     }
@@ -199,13 +209,13 @@ class QuietAutoClosedServiceProvider extends ServiceProvider
             return $none;
         }
 
-        $workflow_user_id = self::workflowUserId();
+        $workflowUserId = self::workflowUserId();
 
         return [
             'closed' => true,
-            'closed_by_workflow' => $workflow_user_id !== null
+            'closed_by_workflow' => $workflowUserId !== null
                 && $conversation->closed_by_user_id !== null
-                && (int) $conversation->closed_by_user_id === $workflow_user_id,
+                && (int) $conversation->closed_by_user_id === $workflowUserId,
         ];
     }
 
@@ -216,16 +226,20 @@ class QuietAutoClosedServiceProvider extends ServiceProvider
      */
     public static function workflowUserId()
     {
-        if (self::$workflow_user_id === false) {
+        if (self::$workflowUserId === false) {
             $id = User::where('email', self::WF_USER_EMAIL)->value('id');
 
-            self::$workflow_user_id = ($id === null) ? null : (int) $id;
+            self::$workflowUserId = ($id === null) ? null : (int) $id;
         }
 
-        return self::$workflow_user_id;
+        return self::$workflowUserId;
     }
 
     /**
+     * \Log is a Laravel facade, which is a static entry point by design.
+     *
+     * @SuppressWarnings(PHPMD.StaticAccess)
+     *
      * @param \Throwable $e
      *
      * @return void
@@ -262,7 +276,7 @@ class QuietAutoClosedServiceProvider extends ServiceProvider
     {
         self::flushMemo();
 
-        self::$workflow_user_id = false;
+        self::$workflowUserId = false;
         self::$decider = null;
     }
 }
