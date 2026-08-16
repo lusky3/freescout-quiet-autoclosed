@@ -119,7 +119,8 @@ jobs:
             | jq -e --arg v "${TAG_NAME#v}" '.version == $v' > /dev/null
 
       - name: Write version.json
-        run: jq -n --arg version "${TAG_NAME#v}" '{version: $version}' > version.json
+        run: |
+          jq -n --arg version "${TAG_NAME#v}" '{version: $version}' > version.json
 
       - name: Extract the changelog entry for this version
         run: |

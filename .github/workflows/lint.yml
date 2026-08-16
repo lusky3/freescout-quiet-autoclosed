@@ -71,3 +71,20 @@ jobs:
       # Without --no-check-lock, this also catches composer.json/lock drift.
       - name: Validate composer.json
         run: composer validate --strict
+
+      # A workflow file that does not parse produces a zero-second failed run
+      # with no jobs and no log, which is a miserable thing to debug. Catching
+      # it here makes the failure say what is actually wrong.
+      - name: Validate workflow YAML
+        run: |
+          python3 - <<'PY'
+          import sys, pathlib, yaml
+          failed = False
+          for path in sorted(pathlib.Path('.github/workflows').glob('*.yml')):
+              try:
+                  yaml.safe_load(path.read_text())
+              except yaml.YAMLError as exc:
+                  failed = True
+                  print(f"::error file={path}::{exc}")
+          sys.exit(1 if failed else 0)
+          PY
