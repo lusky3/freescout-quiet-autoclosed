@@ -3,6 +3,7 @@
 [![Tests](https://github.com/lusky3/freescout-quiet-autoclosed/actions/workflows/tests.yml/badge.svg)](https://github.com/lusky3/freescout-quiet-autoclosed/actions/workflows/tests.yml)
 [![Lint](https://github.com/lusky3/freescout-quiet-autoclosed/actions/workflows/lint.yml/badge.svg)](https://github.com/lusky3/freescout-quiet-autoclosed/actions/workflows/lint.yml)
 [![Semgrep](https://github.com/lusky3/freescout-quiet-autoclosed/actions/workflows/semgrep.yml/badge.svg)](https://github.com/lusky3/freescout-quiet-autoclosed/actions/workflows/semgrep.yml)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/dcff4f80bb01484cb623c337ced05534)](https://app.codacy.com/gh/lusky3/freescout-quiet-autoclosed/dashboard)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 A FreeScout module that stops the "new conversation" alert for tickets an automatic Workflow has already closed.
@@ -157,7 +158,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md), [CHANGELOG.md](CHANGELOG.md), and [SECUR
 | Coverage | Line coverage with a hard 90% floor enforced in-repo, so the gate holds on forks and without any external service. |
 | Lint | PSR-12 via phpcs, `composer validate --strict`, and a YAML parse of every workflow. |
 | Semgrep | `p/php`, `p/security-audit` and `p/github-actions`, open-source rulesets only — no account, no token, `--metrics=off`. |
-| Codacy, Socket | Repository-level analysis and supply-chain checks. |
+| Codacy | Repository-level analysis, scoped by `.codacy.yml` to `Providers/` and `Services/` — the code that actually ships. |
+| Socket | Supply-chain checks, account-wide. |
 
 Every GitHub Action is pinned to a full commit SHA rather than a tag, and each job starts with StepSecurity's Harden-Runner in audit mode. This repo builds an artifact that installs itself onto other people's helpdesks, so its build pipeline is treated as part of the security surface — see [SECURITY.md](SECURITY.md).
 
