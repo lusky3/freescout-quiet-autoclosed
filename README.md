@@ -162,7 +162,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md), [CHANGELOG.md](CHANGELOG.md), and [SECUR
 | Codacy | Repository-level analysis, scoped by `.codacy.yml` to `Providers/` and `Services/` — the code that actually ships. Also receives the coverage report. |
 | Codecov, Qlty | Coverage trend and per-PR annotations. Reporting only — see below. |
 | Socket | Supply-chain checks, account-wide. |
-| SonarQube Cloud | Runs via SonarCloud's Automatic Analysis. `.github/workflows/sonar.yml` holds a CI-based scan that also uploads coverage, but it is manual-dispatch only: the two analysis modes are mutually exclusive, and the workflow documents how to switch. |
+| SonarQube Cloud | CI-based analysis with the coverage report attached. Requires Automatic Analysis to stay off for the project — the two modes are mutually exclusive. |
 
 The three coverage publishers are **reporting, not gating**. Each is guarded on its token being present, so a pull request from a fork skips it rather than failing, and each is `continue-on-error`. The gate is the in-repo threshold, which needs no network and no account — an unreachable dashboard should never be the reason a correct change can't merge.
 
