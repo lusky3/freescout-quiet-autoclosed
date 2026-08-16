@@ -1,9 +1,22 @@
 name: Sonar
 
+# Manual only, deliberately.
+#
+# SonarQube Cloud has Automatic Analysis enabled for this project, and the two
+# modes are mutually exclusive - a CI run alongside it fails with "You are
+# running CI analysis while Automatic Analysis is enabled."
+#
+# Automatic Analysis already covers the static analysis, so nothing is lost
+# today. What it cannot do is ingest a coverage report, which is the only
+# reason to prefer CI analysis here. To switch:
+#
+#   1. SonarQube Cloud -> the project -> Administration -> Analysis Method
+#   2. turn Automatic Analysis off
+#   3. change this trigger to `push: {branches: [main]}` + `pull_request:`
+#
+# Until then this stays runnable on demand rather than red on every push.
 on:
-  push:
-    branches: [main]
-  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read

@@ -4,6 +4,7 @@
 [![Lint](https://github.com/lusky3/freescout-quiet-autoclosed/actions/workflows/lint.yml/badge.svg)](https://github.com/lusky3/freescout-quiet-autoclosed/actions/workflows/lint.yml)
 [![Semgrep](https://github.com/lusky3/freescout-quiet-autoclosed/actions/workflows/semgrep.yml/badge.svg)](https://github.com/lusky3/freescout-quiet-autoclosed/actions/workflows/semgrep.yml)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/dcff4f80bb01484cb623c337ced05534)](https://app.codacy.com/gh/lusky3/freescout-quiet-autoclosed/dashboard)
+[![codecov](https://codecov.io/gh/lusky3/freescout-quiet-autoclosed/branch/main/graph/badge.svg)](https://codecov.io/gh/lusky3/freescout-quiet-autoclosed)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 A FreeScout module that stops the "new conversation" alert for tickets an automatic Workflow has already closed.
@@ -158,8 +159,12 @@ See [CONTRIBUTING.md](CONTRIBUTING.md), [CHANGELOG.md](CHANGELOG.md), and [SECUR
 | Coverage | Line coverage with a hard 90% floor enforced in-repo, so the gate holds on forks and without any external service. |
 | Lint | PSR-12 via phpcs, `composer validate --strict`, and a YAML parse of every workflow. |
 | Semgrep | `p/php`, `p/security-audit` and `p/github-actions`, open-source rulesets only — no account, no token, `--metrics=off`. |
-| Codacy | Repository-level analysis, scoped by `.codacy.yml` to `Providers/` and `Services/` — the code that actually ships. |
+| Codacy | Repository-level analysis, scoped by `.codacy.yml` to `Providers/` and `Services/` — the code that actually ships. Also receives the coverage report. |
+| Codecov, Qlty | Coverage trend and per-PR annotations. Reporting only — see below. |
 | Socket | Supply-chain checks, account-wide. |
+| SonarQube Cloud | Runs via SonarCloud's Automatic Analysis. `.github/workflows/sonar.yml` holds a CI-based scan that also uploads coverage, but it is manual-dispatch only: the two analysis modes are mutually exclusive, and the workflow documents how to switch. |
+
+The three coverage publishers are **reporting, not gating**. Each is guarded on its token being present, so a pull request from a fork skips it rather than failing, and each is `continue-on-error`. The gate is the in-repo threshold, which needs no network and no account — an unreachable dashboard should never be the reason a correct change can't merge.
 
 Every GitHub Action is pinned to a full commit SHA rather than a tag, and each job starts with StepSecurity's Harden-Runner in audit mode. This repo builds an artifact that installs itself onto other people's helpdesks, so its build pipeline is treated as part of the security surface — see [SECURITY.md](SECURITY.md).
 
