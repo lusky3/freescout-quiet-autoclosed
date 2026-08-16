@@ -1,0 +1,52 @@
+name: Semgrep
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Rulesets change even when this repo doesn't; a weekly run catches a
+    # newly-published rule that matches existing code.
+    - cron: '17 6 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: semgrep-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  semgrep:
+    name: SAST
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Semgrep
+        run: pip install --disable-pip-version-check semgrep
+
+      # Open-source rulesets only - no account, no token, nothing sent
+      # anywhere (--metrics=off). p/github-actions is the one that earns its
+      # keep here: this repo has more shell-in-YAML than it has PHP, and that
+      # ruleset is what flagged the unpinned action tags this workflow now
+      # helps keep pinned.
+      - name: Run Semgrep
+        run: |
+          semgrep scan \
+            --config p/php \
+            --config p/security-audit \
+            --config p/github-actions \
+            --metrics=off \
+            --error \
+            Providers Services Tests .github

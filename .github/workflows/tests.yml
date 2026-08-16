@@ -27,13 +27,18 @@ jobs:
         php-version: ['8.2', '8.3', '8.4', '8.5']
 
     steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: audit
+
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Set up PHP ${{ matrix.php-version }}
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: ${{ matrix.php-version }}
           extensions: zip
@@ -45,7 +50,7 @@ jobs:
         run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
       - name: Cache Composer packages
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-php${{ matrix.php-version }}-composer-${{ hashFiles('**/composer.lock') }}
@@ -67,3 +72,74 @@ jobs:
 
       - name: Run unit tests
         run: vendor/bin/phpunit --testsuite Unit
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.3'
+          extensions: zip
+          coverage: pcov
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run tests with coverage
+        run: vendor/bin/phpunit --testsuite Unit --coverage-clover coverage.xml --coverage-text
+
+      # Enforced in-repo rather than delegated to a service, so the gate holds
+      # on forks and whenever an external dashboard is unavailable. Codecov
+      # below is for the trend and the PR annotations, not for the gate.
+      #
+      # The threshold is a floor, not a target: this module's failure mode is a
+      # notification that silently never arrives, so an untested branch here is
+      # worth more than an untested branch in most code.
+      - name: Enforce minimum line coverage
+        run: |
+          php -r '
+            $file = "coverage.xml";
+            if (!is_file($file)) {
+              fwrite(STDERR, "::error::coverage.xml was not produced\n");
+              exit(1);
+            }
+            $metrics = simplexml_load_file($file)->project->metrics;
+            $covered = (int) $metrics["coveredstatements"];
+            $total = (int) $metrics["statements"];
+            $percent = $total > 0 ? ($covered / $total) * 100 : 0.0;
+            $minimum = 90.0;
+            printf("Line coverage: %.2f%% (%d/%d statements)\n", $percent, $covered, $total);
+            if ($percent < $minimum) {
+              fwrite(STDERR, sprintf("::error::coverage %.2f%% is below the %.1f%% minimum\n", $percent, $minimum));
+              exit(1);
+            }
+          '
+
+      # Optional: only runs once CODECOV_TOKEN is set on the repo. Tokenless
+      # uploads from public repos are rate limited and fail intermittently,
+      # which is not a thing worth failing a build over - hence the guard and
+      # fail_ci_if_error: false.
+      - name: Upload coverage to Codecov
+        if: ${{ env.CODECOV_TOKEN != '' }}
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}

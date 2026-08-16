@@ -19,6 +19,18 @@ Concretely:
 
 Also in scope: `latestVersionUrl` / `latestVersionZipUrl` in `module.json` pointing anywhere other than this repository's own releases, or a change to `.github/workflows/release.yml` that could publish a mismatched or attacker-controlled `version.json` / archive under this project's name.
 
+### The build pipeline counts too
+
+This repository publishes an artifact that FreeScout installs automatically on update, so whoever controls the release workflow controls what lands in other people's helpdesks. That pipeline is treated as part of the security surface:
+
+- Every GitHub Action is pinned to a full commit SHA, never a tag. Semgrep's `p/github-actions` ruleset fails the build if that ever regresses.
+- Each job runs StepSecurity's Harden-Runner in audit mode, so a build's outbound network traffic is recorded.
+- Workflow permissions are `contents: read` except the release job, which is scoped to `contents: write` at the job level.
+- `actions/checkout` runs with `persist-credentials: false`, so no usable token is left in `.git/config` for later steps.
+- The release archive is inspected before upload, and `version.json` — the file every install polls — is uploaded only after the archive it announces.
+
+Anything that weakens one of those, or a way to get an artifact published that did not come from a tagged, verified run, is worth reporting.
+
 ## What doesn't count
 
 The module's own code reads `conversations.status` and `conversations.closed_by_user_id` (keyed on `conversations.id`), plus `users.id` for one email, and returns a boolean. It writes nothing, exposes no routes, renders no views, accepts no user input, and makes no outbound network requests.

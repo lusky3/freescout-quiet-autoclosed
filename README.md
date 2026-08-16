@@ -1,5 +1,10 @@
 # Quiet Auto-Closed
 
+[![Tests](https://github.com/lusky3/freescout-quiet-autoclosed/actions/workflows/tests.yml/badge.svg)](https://github.com/lusky3/freescout-quiet-autoclosed/actions/workflows/tests.yml)
+[![Lint](https://github.com/lusky3/freescout-quiet-autoclosed/actions/workflows/lint.yml/badge.svg)](https://github.com/lusky3/freescout-quiet-autoclosed/actions/workflows/lint.yml)
+[![Semgrep](https://github.com/lusky3/freescout-quiet-autoclosed/actions/workflows/semgrep.yml/badge.svg)](https://github.com/lusky3/freescout-quiet-autoclosed/actions/workflows/semgrep.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A FreeScout module that stops the "new conversation" alert for tickets an automatic Workflow has already closed.
 
 If you use Workflows to file automated mail — registration confirmations, payment notifications, bounce messages — you already know the problem: the workflow closes and tags the ticket correctly, and everyone still gets emailed about it.
@@ -143,6 +148,18 @@ composer lint    # phpcs, PSR-12
 `Services/SuppressionDecider.php` holds the decision and reaches the database through an injected callable. `Providers/QuietAutoClosedServiceProvider.php` does the framework-facing work. Both are unit-tested: `Tests/Stubs/` provides doubles for the small surface of Laravel and FreeScout the provider touches, so it can be booted for real, its hooks recorded, and those hooks invoked — including assertions on *how many queries* a given notification costs.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [CHANGELOG.md](CHANGELOG.md), and [SECURITY.md](SECURITY.md).
+
+### What CI checks
+
+| Check | What it's for |
+|---|---|
+| Tests, PHP 8.2 – 8.5 | The suite, plus `php -l` on every version, because the module ships as plain files onto whatever PHP the install runs. |
+| Coverage | Line coverage with a hard 90% floor enforced in-repo, so the gate holds on forks and without any external service. |
+| Lint | PSR-12 via phpcs, `composer validate --strict`, and a YAML parse of every workflow. |
+| Semgrep | `p/php`, `p/security-audit` and `p/github-actions`, open-source rulesets only — no account, no token, `--metrics=off`. |
+| Codacy, Socket | Repository-level analysis and supply-chain checks. |
+
+Every GitHub Action is pinned to a full commit SHA rather than a tag, and each job starts with StepSecurity's Harden-Runner in audit mode. This repo builds an artifact that installs itself onto other people's helpdesks, so its build pipeline is treated as part of the security surface — see [SECURITY.md](SECURITY.md).
 
 ## Known limits
 

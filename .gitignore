@@ -1,5 +1,6 @@
 /vendor
 /version.json
+/coverage.xml
 .phpunit.cache
 .phpunit.result.cache
 *.log

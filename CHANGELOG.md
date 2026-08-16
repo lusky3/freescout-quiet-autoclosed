@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- Every GitHub Action is now pinned to a full commit SHA instead of a mutable
+  tag, and each CI job runs StepSecurity's Harden-Runner in audit mode. The
+  release pipeline builds the artifact that installs itself onto other
+  people's helpdesks, so it is treated as part of the security surface.
+
+### Added
+
+- Semgrep scan (`p/php`, `p/security-audit`, `p/github-actions`) on pull
+  requests and weekly, using open-source rulesets with metrics disabled. The
+  GitHub Actions ruleset keeps the SHA pinning above from regressing.
+- Coverage job with a 90% line-coverage floor enforced in-repo, so the gate
+  holds on forks and without any external service.
+
 ## [1.0.0] - 2026-08-15
 
 First release.

@@ -10,7 +10,24 @@ composer test    # phpunit
 composer lint    # phpcs, PSR-12
 ```
 
-CI runs the test suite on PHP 8.2, 8.3, 8.4 and 8.5, and runs style and syntax checks on 8.2. It's cheaper to catch failures locally.
+CI runs the test suite on PHP 8.2, 8.3, 8.4 and 8.5, style and syntax checks on 8.2, a Semgrep scan, and a coverage job with a hard 90% line-coverage floor. It's cheaper to catch failures locally.
+
+To reproduce the coverage gate you need a coverage driver (`pcov` or `xdebug`):
+
+```sh
+php -d pcov.enabled=1 vendor/bin/phpunit --testsuite Unit --coverage-text
+```
+
+To reproduce the Semgrep scan without installing anything permanently:
+
+```sh
+uvx --from semgrep semgrep scan --config p/php --config p/security-audit \
+  --config p/github-actions --metrics=off --error Providers Services Tests .github
+```
+
+### Actions are pinned to SHAs
+
+Every `uses:` in `.github/workflows/` is a full 40-character commit SHA with the version in a trailing comment. Tags are mutable and can be repointed by their owner, which is how several action supply-chain compromises worked — and this repo publishes an artifact that other people's helpdesks install automatically. Semgrep's `p/github-actions` ruleset fails the build on an unpinned tag, so this stays true by itself. Dependabot updates the SHA and the comment together; take its PRs.
 
 ## What the tests are protecting
 
