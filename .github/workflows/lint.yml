@@ -75,10 +75,14 @@ jobs:
 
       # Ruleset lives in phpcs.xml (PSR-12, with a documented, narrow
       # exclusion for PHPUnit's snake_case test method convention).
-      # -n suppresses warnings (e.g. the soft line-length limit) from failing
-      # the build; only real PSR-12 errors fail this job.
+      #
+      # Warnings are NOT suppressed. This job used to pass -n, which hid two
+      # real findings that Codacy then reported from its own phpcs run: a
+      # constant without a visibility modifier, and an over-long line. If a
+      # warning is not worth fixing, the right answer is to silence that sniff
+      # in phpcs.xml with a reason, not to blanket-ignore the severity.
       - name: PHP_CodeSniffer (PSR-12)
-        run: vendor/bin/phpcs -n
+        run: vendor/bin/phpcs
 
       # Without --no-check-lock, this also catches composer.json/lock drift.
       - name: Validate composer.json

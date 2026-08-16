@@ -76,36 +76,46 @@ class SuppressionDecider
     {
         $conversation_id = $this->conversationId($conversation);
 
-        if ($conversation_id === null) {
+        // Both guards are checked before touching the database: an
+        // unrecognisable conversation cannot be looked up, and the
+        // overwhelming majority of notifications are replies, assignments and
+        // notes, which must not pay for a lookup that could never affect
+        // them.
+        if ($conversation_id === null || !$this->isNewConversationEvent($events)) {
             return false;
         }
 
-        // Checked before touching the database: the overwhelming majority of
-        // notifications are replies, assignments and notes, and they must not
-        // pay for a lookup they can never be affected by.
-        if (!$this->isNewConversationEvent($events)) {
-            return false;
+        if (!array_key_exists($conversation_id, $this->memo)) {
+            $this->remember($conversation_id);
         }
 
-        if (array_key_exists($conversation_id, $this->memo)) {
-            return $this->memo[$conversation_id];
-        }
+        // Still absent means the state read failed. That answer is not cached
+        // - the next pass retries it - and until then the notification goes
+        // out, which is the safe direction.
+        return $this->memo[$conversation_id] ?? false;
+    }
 
+    /**
+     * Read a conversation's state once and record the verdict.
+     *
+     * A failure deliberately records nothing: a transient database error must
+     * not pin a "notify" answer for the rest of the pass.
+     *
+     * @param int $conversation_id
+     *
+     * @return void
+     */
+    private function remember($conversation_id)
+    {
         try {
             $state = call_user_func($this->readState, $conversation_id);
         } catch (\Throwable $e) {
-            // Not memoized: a transient database error should not pin a
-            // "notify" answer for the rest of the pass.
-            return false;
+            return;
         }
 
-        $suppress = is_array($state)
+        $this->memo[$conversation_id] = is_array($state)
             && !empty($state['closed'])
             && !empty($state['closed_by_workflow']);
-
-        $this->memo[$conversation_id] = $suppress;
-
-        return $suppress;
     }
 
     /**

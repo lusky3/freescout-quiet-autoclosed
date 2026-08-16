@@ -179,7 +179,9 @@ class SuppressionDeciderTest extends TestCase
     {
         $decider = $this->decider($this->closedByWorkflow());
 
-        $this->assertTrue($decider->shouldSuppress([self::CUSTOMER_REPLIED, self::NEW_CONVERSATION], $this->conversation()));
+        $events = [self::CUSTOMER_REPLIED, self::NEW_CONVERSATION];
+
+        $this->assertTrue($decider->shouldSuppress($events, $this->conversation()));
     }
 
     public function test_keeps_when_the_event_list_is_empty(): void

@@ -11,5 +11,12 @@ indent_size = 4
 [*.{json,yml,yaml}]
 indent_size = 2
 
+# Markdown continuation lines, XML attribute alignment and TOML arrays are all
+# indented to suit the surrounding construct rather than a fixed step, so no
+# single indent_size is true for them. Declaring one just makes
+# editorconfig-checker report every wrapped list item.
+[*.{md,xml,toml}]
+indent_size = unset
+
 [*.md]
 trim_trailing_whitespace = false
