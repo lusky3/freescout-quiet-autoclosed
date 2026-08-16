@@ -1,0 +1,24 @@
+---
+# Codacy analyses the code this module actually ships. The exclusions below are
+# not there to flatter the grade - each one is a place where the default PHP
+# rulesets ask for something this repo cannot or should not do.
+exclude_paths:
+  # Lizard reports composer.lock as a 1,869-line PHP file. It is a lock file.
+  - 'composer.lock'
+
+  # Tests/Stubs are deliberate framework doubles: they exist to mirror
+  # FreeScout's and Laravel's signatures exactly, so PHPMD's
+  # UnusedFormalParameter fires on every `$column` they are contractually
+  # obliged to accept and ignore.
+  #
+  # Tests/Unit trips cleancode/StaticAccess on every fixture reset
+  # (HookRecorder::reset(), FakeDb::reset()) and codesize/TooManyMethods for
+  # having 31 test methods, which the ruleset wants under 10. Both are
+  # PHPUnit's normal shape, and neither is a defect worth a maintainer's
+  # attention. Test quality here is defended by the mutation checks described
+  # in CONTRIBUTING.md, not by a production-code linter.
+  - 'Tests/**'
+
+  # Workflow YAML is covered by Semgrep's p/github-actions ruleset and a
+  # parse check in the lint job.
+  - '.github/**'
