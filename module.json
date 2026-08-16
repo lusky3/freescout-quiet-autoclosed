@@ -1,0 +1,14 @@
+{
+  "name": "Quiet Auto-Closed",
+  "alias": "quietautoclosed",
+  "description": "Suppresses the \"new conversation\" notification for tickets an automatic Workflow has already closed.",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": "lusky3",
+  "authorUrl": "https://github.com/lusky3/freescout-quiet-autoclosed",
+  "latestVersionUrl": "https://github.com/lusky3/freescout-quiet-autoclosed/releases/latest/download/version.json",
+  "latestVersionZipUrl": "https://github.com/lusky3/freescout-quiet-autoclosed/releases/latest/download/freescout-quiet-autoclosed.zip",
+  "providers": [
+    "Modules\\QuietAutoClosed\\Providers\\QuietAutoClosedServiceProvider"
+  ]
+}

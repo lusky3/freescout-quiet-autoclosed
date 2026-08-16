@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/lusky3/freescout-quiet-autoclosed/security/advisories/new
+    about: Report privately instead of opening a public issue. See SECURITY.md for what counts.
+  - name: FreeScout itself
+    url: https://github.com/freescout-help-desk/freescout/issues
+    about: Bugs in FreeScout core or the Workflows module belong upstream, not here.

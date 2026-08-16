@@ -1,0 +1,67 @@
+name: Bug report
+description: Something isn't behaving the way the README says it should.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Two failure modes are worth separating, because they're very different in severity:
+
+        - **Notifications still arrive** for workflow-closed tickets — annoying, but nothing is lost.
+        - **Notifications stopped arriving** for tickets that should have alerted someone — this one can hide real customer mail. Say so up front and it gets priority.
+
+  - type: dropdown
+    id: direction
+    attributes:
+      label: Which way is it wrong?
+      options:
+        - Notifications still arrive for workflow-closed tickets
+        - Notifications are being suppressed when they shouldn't be
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected, and what you got instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: conversation
+    attributes:
+      label: The conversation involved
+      description: |
+        Run this as your PHP user, substituting the conversation number, and paste the output.
+        Redact subjects and addresses freely — only the status and action types matter.
+      value: |
+        php artisan tinker
+        >>> $c = \App\Conversation::where('number', NUMBER)->first();
+        >>> [$c->id, $c->status, $c->state];
+        >>> \App\Thread::where('conversation_id', $c->id)->pluck('action_type');
+      render: shell
+
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Module version (from module.json), FreeScout version, PHP version.
+      placeholder: "module 1.0.0, FreeScout 1.8.x, PHP 8.5"
+    validations:
+      required: true
+
+  - type: input
+    id: workflows-version
+    attributes:
+      label: Workflows module version
+      description: This module is a no-op without it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: other-modules
+    attributes:
+      label: Other notification-related modules
+      description: MobileNotifications, Mentions, or anything else that touches notifications.

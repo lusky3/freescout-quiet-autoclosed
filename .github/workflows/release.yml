@@ -1,0 +1,166 @@
+name: Release
+
+# Triggered by the tag, not by a published release, and deliberately so.
+#
+# On `release: published` GitHub has already flipped the release to "Latest"
+# before this workflow runs, so a failure here - most likely at the version
+# guard, the one thing this workflow exists to catch - would leave the Latest
+# release with no assets at all. Every existing install polls
+# releases/latest/download/version.json, so that turns a caught mistake into a
+# broken update path for everyone.
+#
+# Building from the tag and only un-drafting at the very end means a release
+# becomes Latest if and only if a verified artifact is already attached to it.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build, verify and publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+
+    env:
+      TAG_NAME: ${{ github.ref_name }}
+
+    steps:
+      - name: Checkout the tag
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      # A tag can be cut from any commit, including one that never had green
+      # CI. Re-running the suite here makes the checks a release gate rather
+      # than a branch formality - and ModuleJsonTest turns the changelog
+      # entry, the alias and both asset URLs into release gates for free.
+      - name: Run tests
+        run: vendor/bin/phpunit --testsuite Unit
+
+      - name: Check style
+        run: vendor/bin/phpcs -n
+
+      # module.json's committed version must match the tag, or the zip's own
+      # bundled module.json would report the wrong version to the *next*
+      # update check and leave installs believing they are current.
+      - name: Verify module.json's version matches the tag
+        run: |
+          set -euo pipefail
+          tag_version="${TAG_NAME#v}"
+          json_version=$(jq -r .version module.json)
+          version_pattern='^[0-9]+\.[0-9]+\.[0-9]+$'
+          if ! [[ "$tag_version" =~ $version_pattern ]]; then
+            echo "::error::Release tag does not look like vX.Y.Z. Pre-release tags are not supported."
+            exit 1
+          fi
+          if ! [[ "$json_version" =~ $version_pattern ]]; then
+            echo "::error::module.json's version is not a valid X.Y.Z dotted triple."
+            exit 1
+          fi
+          if [ "$tag_version" != "$json_version" ]; then
+            echo "::error::module.json version ($json_version) does not match the release tag ($tag_version)."
+            echo "Bump module.json's \"version\" field, commit it, and re-tag."
+            exit 1
+          fi
+
+      # --prefix makes the archive's top-level folder exactly
+      # "QuietAutoClosed/", which must match the namespace segment in
+      # module.json's provider entry: FreeScout maps Modules\ => Modules/, so
+      # any other folder name is a class-not-found on activation.
+      # git archive honours .gitattributes export-ignore, so the development
+      # harness is left out.
+      - name: Build the archive
+        run: git archive --format=zip --prefix=QuietAutoClosed/ "$TAG_NAME" -o freescout-quiet-autoclosed.zip
+
+      # export-ignore is exactly the kind of edit that can silently gut an
+      # artifact, so the archive is inspected before anyone can install it.
+      - name: Verify the archive
+        run: |
+          set -euo pipefail
+          top=$(unzip -Z1 freescout-quiet-autoclosed.zip | cut -d/ -f1 | sort -u)
+          if [ "$top" != "QuietAutoClosed" ]; then
+            echo "::error::archive top-level folder is '$top', expected exactly 'QuietAutoClosed'"
+            exit 1
+          fi
+          for required in \
+            QuietAutoClosed/module.json \
+            QuietAutoClosed/Providers/QuietAutoClosedServiceProvider.php \
+            QuietAutoClosed/Services/SuppressionDecider.php \
+            QuietAutoClosed/LICENSE \
+            QuietAutoClosed/README.md
+          do
+            if ! unzip -Z1 freescout-quiet-autoclosed.zip | grep -qx "$required"; then
+              echo "::error::archive is missing $required"
+              exit 1
+            fi
+          done
+          unzip -p freescout-quiet-autoclosed.zip QuietAutoClosed/module.json \
+            | jq -e --arg v "${TAG_NAME#v}" '.version == $v' > /dev/null
+
+      - name: Write version.json
+        run: jq -n --arg version "${TAG_NAME#v}" '{version: $version}' > version.json
+
+      - name: Extract the changelog entry for this version
+        run: |
+          set -euo pipefail
+          tag_version="${TAG_NAME#v}"
+          awk -v ver="$tag_version" '
+            $0 ~ "^## \\[" ver "\\]" { flag = 1; next }
+            flag && /^## \[/ { exit }
+            flag { print }
+          ' CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "::error::no CHANGELOG.md entry found for $tag_version"
+            exit 1
+          fi
+
+      - name: Create the release as a draft
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG_NAME" > /dev/null 2>&1; then
+            gh release edit "$TAG_NAME" --draft=true --notes-file release-notes.md
+          else
+            gh release create "$TAG_NAME" --draft --title "$TAG_NAME" --notes-file release-notes.md
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      # Uploaded in two ordered steps, never one command: `gh release upload`
+      # uploads its arguments concurrently, so a single call could land
+      # version.json while the zip fails. version.json is the trigger every
+      # install polls, so it must be the last thing to appear.
+      - name: Upload the module archive
+        run: gh release upload "$TAG_NAME" freescout-quiet-autoclosed.zip --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Upload version.json
+        run: gh release upload "$TAG_NAME" version.json --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Publish the release
+        run: gh release edit "$TAG_NAME" --draft=false --latest
+        env:
+          GH_TOKEN: ${{ github.token }}

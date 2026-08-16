@@ -1,0 +1,36 @@
+name: Feature request
+description: Suggest a change to what gets suppressed.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Version 1.0 hardcodes one rule: silence the "new conversation" alert when an automatic
+        workflow has already closed the ticket. Making that configurable is the expected next
+        step — it just hasn't been built around a real use case yet. Yours could be it.
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: What are you trying to silence, and why can't you today?
+      description: Describe the actual mail flow, not just the setting you have in mind.
+    validations:
+      required: true
+
+  - type: textarea
+    id: rule
+    attributes:
+      label: What rule would you want instead?
+      description: |
+        For example: "suppress when a workflow tagged it, even if it stays open",
+        or "suppress only in mailbox X", or "suppress email but keep the bell menu".
+    validations:
+      required: true
+
+  - type: textarea
+    id: risk
+    attributes:
+      label: What must still notify?
+      description: |
+        The cost of getting this wrong is a hidden customer email. What would you
+        definitely not want silenced by your rule?

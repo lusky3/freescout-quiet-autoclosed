@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<ruleset name="QuietAutoClosed">
+    <description>PSR-12 coding standard for the Quiet Auto-Closed FreeScout module.</description>
+
+    <!--
+        Everything, rather than an allowlist of directories: a module that
+        later grows Config/, Http/ or Database/ should be linted from the
+        first commit in it, not from whenever someone remembers to extend
+        this list.
+    -->
+    <file>.</file>
+
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+
+    <arg name="extensions" value="php"/>
+    <arg value="p"/>
+
+    <rule ref="PSR12"/>
+
+    <!--
+        PHPUnit's long-standing convention is snake_case test method names
+        (test_it_does_the_thing), which PSR-1/PSR-12's CamelCapsMethodName
+        sniff reports as an error. Relaxed for the Tests directory only; it
+        still applies everywhere else.
+    -->
+    <rule ref="PSR1.Methods.CamelCapsMethodName">
+        <exclude-pattern>*/Tests/*</exclude-pattern>
+    </rule>
+</ruleset>

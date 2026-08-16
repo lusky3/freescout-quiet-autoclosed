@@ -1,0 +1,48 @@
+{
+  "name": "lusky3/freescout-quiet-autoclosed",
+  "description": "FreeScout module: suppress the \"new conversation\" notification for tickets an automatic Workflow has already closed.",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "freescout",
+    "freescout-module",
+    "notifications",
+    "workflows"
+  ],
+  "homepage": "https://github.com/lusky3/freescout-quiet-autoclosed",
+  "support": {
+    "issues": "https://github.com/lusky3/freescout-quiet-autoclosed/issues",
+    "source": "https://github.com/lusky3/freescout-quiet-autoclosed"
+  },
+  "require": {
+    "php": "^8.2"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^11.5",
+    "squizlabs/php_codesniffer": "^4.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Modules\\QuietAutoClosed\\": ""
+    },
+    "exclude-from-classmap": [
+      "/Tests/"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "Tests/"
+    },
+    "files": [
+      "Tests/Stubs/framework.php",
+      "Tests/Stubs/freescout.php"
+    ]
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "scripts": {
+    "lint": "phpcs -n",
+    "test": "phpunit --testsuite Unit"
+  }
+}
