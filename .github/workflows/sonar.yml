@@ -1,0 +1,72 @@
+name: Sonar
+
+# CI analysis, which requires Automatic Analysis to be OFF for this project
+# (Administration -> Analysis Method). The two modes are mutually exclusive:
+# if Automatic Analysis is ever switched back on, this job starts failing with
+# "You are running CI analysis while Automatic Analysis is enabled."
+#
+# CI analysis is the mode worth having here because it is the only one that
+# can ingest a coverage report.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sonar-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sonar:
+    name: SonarQube Cloud
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    # Deliberately its own workflow rather than a step in the coverage job:
+    # this reports to an external service that can be down, mid-migration, or
+    # simply not have the project provisioned yet. Isolating it means none of
+    # that can block the required Coverage check.
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Sonar wants full history to attribute issues to the commit that
+          # introduced them; a shallow clone makes every line look new.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.3'
+          extensions: zip
+          coverage: pcov
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      # Regenerated here rather than passed between workflows as an artifact:
+      # the suite runs in well under a second, so a handoff would cost more
+      # than it saves and add a way for the two to disagree.
+      - name: Generate coverage
+        run: vendor/bin/phpunit --testsuite Unit --coverage-clover coverage.xml
+
+      - name: SonarQube scan
+        if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
