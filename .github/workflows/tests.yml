@@ -78,6 +78,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
+    # Read as guards below. A pull request from a fork gets no secrets, so
+    # each publish step skips itself rather than failing the run.
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+      QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
@@ -130,16 +137,31 @@ jobs:
             }
           '
 
-      # Optional: only runs once CODECOV_TOKEN is set on the repo. Tokenless
-      # uploads from public repos are rate limited and fail intermittently,
-      # which is not a thing worth failing a build over - hence the guard and
-      # fail_ci_if_error: false.
+      # The three publish steps below are reporting, not gating: the hard gate
+      # is the in-repo threshold above, which needs no network and no account.
+      # An unreachable dashboard should never be the reason a correct change
+      # cannot merge, hence continue-on-error on all of them.
       - name: Upload coverage to Codecov
-        if: ${{ env.CODECOV_TOKEN != '' }}
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        if: env.CODECOV_TOKEN != ''
+        continue-on-error: true
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           files: coverage.xml
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload coverage to Codacy
+        if: env.CODACY_PROJECT_TOKEN != ''
+        continue-on-error: true
+        uses: codacy/codacy-coverage-reporter-action@89d6c85cfafaec52c72b6c5e8b2878d33104c699 # v1.3.0
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: coverage.xml
+
+      - name: Upload coverage to Qlty
+        if: env.QLTY_COVERAGE_TOKEN != ''
+        continue-on-error: true
+        uses: qltysh/qlty-action/coverage@08a0a862c159eae9b9003081da6663d96efef637 # v2
+        with:
+          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+          files: coverage.xml
