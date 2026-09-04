@@ -177,7 +177,8 @@ jobs:
             QuietAutoClosed/Providers/QuietAutoClosedServiceProvider.php \
             QuietAutoClosed/Services/SuppressionDecider.php \
             QuietAutoClosed/LICENSE \
-            QuietAutoClosed/README.md
+            QuietAutoClosed/README.md \
+            QuietAutoClosed/Public/img/icon.svg
           do
             if ! unzip -Z1 freescout-quiet-autoclosed.zip | grep -qx "$required"; then
               echo "::error::archive is missing $required"

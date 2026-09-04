@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Neither `img` nor `detailsUrl` was set in module.json, so the module showed
+  FreeScout's generic default icon on the Modules page, and the "View details"
+  link on its update-available notice resolved to an empty URL - which a
+  browser treats as the current page, reopening the same Modules page instead
+  of going anywhere. Confirmed live: the "1.0.1 available" notice this pipeline
+  produces was the first real user of that broken link. Added a small bell-
+  with-slash icon under `Public/img/` (the path FreeScout core actually serves
+  a module's Public/ directory from - confirmed against a live install's
+  `/modules/<alias>/` symlink) and set `detailsUrl` to this repository. A test
+  now fails if `img` ever points at a file that does not exist on disk.
+
 - README.md attributed update-checking to Module Manager. It is entirely
   FreeScout core: any third-party module with
   `latestVersionUrl`/`latestVersionZipUrl` gets checked and offered an "Update

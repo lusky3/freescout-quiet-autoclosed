@@ -106,6 +106,34 @@ class ModuleJsonTest extends TestCase
         $this->assertFileExists($path);
     }
 
+    /**
+     * FreeScout serves a module's Public/ directory at
+     * /modules/<lowercase alias>/... (confirmed directly against a live
+     * install: /www/html/public/modules/spamfilter is a symlink to
+     * /data/Modules/SpamFilter/Public). module.json's "img" must resolve
+     * through that exact mapping to a file that actually exists, or the
+     * module card silently falls back to FreeScout's generic default icon -
+     * indistinguishable, at a glance, from having no icon at all.
+     */
+    public function test_declared_icon_exists_on_disk(): void
+    {
+        $data = $this->moduleJson();
+
+        $this->assertArrayHasKey('img', $data);
+
+        $prefix = '/modules/' . $data['alias'] . '/';
+        $this->assertStringStartsWith(
+            $prefix,
+            $data['img'],
+            'module.json "img" must be an internal path under /modules/<alias>/, matching the alias exactly.'
+        );
+
+        $relative = substr($data['img'], strlen($prefix));
+        $path = __DIR__ . '/../../Public/' . $relative;
+
+        $this->assertFileExists($path, 'module.json declares an icon that does not exist in Public/.');
+    }
+
     public function test_declares_the_mit_license(): void
     {
         $data = $this->moduleJson();

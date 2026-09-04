@@ -127,7 +127,7 @@ class ReleaseWorkflowTest extends TestCase
     {
         $gitattributes = (string) file_get_contents(__DIR__ . '/../../.gitattributes');
 
-        foreach (['/Providers', '/Services', '/module.json', '/LICENSE', '/README.md'] as $required) {
+        foreach (['/Providers', '/Services', '/Public', '/module.json', '/LICENSE', '/README.md'] as $required) {
             $this->assertDoesNotMatchRegularExpression(
                 '/^' . preg_quote($required, '/') . '\s+export-ignore/m',
                 $gitattributes,
@@ -142,6 +142,11 @@ class ReleaseWorkflowTest extends TestCase
 
         $this->assertStringContainsString('unzip -Z1', $workflow, 'The built archive should be inspected.');
         $this->assertStringContainsString('QuietAutoClosed/module.json', $workflow);
+        $this->assertStringContainsString(
+            'QuietAutoClosed/Public/img/icon.svg',
+            $workflow,
+            'The module icon must be a required file in the built archive, or an install gets a blank icon.'
+        );
     }
 
     /**
