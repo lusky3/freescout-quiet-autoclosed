@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-09-04
+
 ### Fixed
 
 - Neither `img` nor `detailsUrl` was set in module.json, so the module showed
@@ -104,6 +106,7 @@ First release.
   before any database read, and before the lazy `$thread->conversation`
   relation is resolved.
 
-[Unreleased]: https://github.com/lusky3/freescout-quiet-autoclosed/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/lusky3/freescout-quiet-autoclosed/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/lusky3/freescout-quiet-autoclosed/releases/tag/v1.0.2
 [1.0.1]: https://github.com/lusky3/freescout-quiet-autoclosed/releases/tag/v1.0.1
 [1.0.0]: https://github.com/lusky3/freescout-quiet-autoclosed/releases/tag/v1.0.0
