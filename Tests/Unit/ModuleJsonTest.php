@@ -143,4 +143,31 @@ class ModuleJsonTest extends TestCase
         $this->assertSame($data['license'], $composer['license'] ?? null);
         $this->assertSame($data['authorUrl'], $composer['homepage'] ?? null);
     }
+
+    /**
+     * Every official FreeScout module declares this (Workflows, SpamFilter,
+     * MobileNotifications, Mentions all checked directly on a live install);
+     * it is what lets core warn an admin before activation on a FreeScout
+     * that predates the filters this module hooks, rather than the module
+     * silently doing nothing - the failure mode the README documents.
+     *
+     * Pinned to the exact version the README's "Verified against" line
+     * names, so the two cannot drift apart silently.
+     */
+    public function test_declares_the_verified_required_app_version(): void
+    {
+        $data = $this->moduleJson();
+        $readme = (string) file_get_contents(__DIR__ . '/../../README.md');
+
+        $this->assertArrayHasKey('requiredAppVersion', $data);
+
+        $matched = preg_match('/Verified against \*\*FreeScout ([\d.]+)\*\*/', $readme, $m);
+        $this->assertSame(1, $matched, "README.md's \"Verified against\" line could not be found or parsed.");
+
+        $this->assertSame(
+            $m[1],
+            $data['requiredAppVersion'],
+            'module.json requiredAppVersion and README\'s "Verified against" version have drifted apart.'
+        );
+    }
 }
