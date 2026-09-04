@@ -7,8 +7,8 @@ body:
       value: |
         Two failure modes are worth separating, because they're very different in severity:
 
-        - **Notifications still arrive** for workflow-closed tickets — annoying, but nothing is lost.
-        - **Notifications stopped arriving** for tickets that should have alerted someone — this one can hide real customer mail. Say so up front and it gets priority.
+        - **Notifications still arrive** for workflow-closed tickets. Annoying, but nothing is lost.
+        - **Notifications stopped arriving** for tickets that should have alerted someone. This one can hide real customer mail, so say so up front and it gets priority.
 
   - type: dropdown
     id: direction
@@ -35,7 +35,7 @@ body:
       label: The conversation involved
       description: |
         Run this as your PHP user, substituting the conversation number, and paste the output.
-        Redact subjects and addresses freely — only the status and action types matter.
+        Redact subjects and addresses freely; only the status and action types matter.
       value: |
         php artisan tinker
         >>> $c = \App\Conversation::where('number', NUMBER)->first();
@@ -48,7 +48,7 @@ body:
     attributes:
       label: Versions
       description: Module version (from module.json), FreeScout version, PHP version.
-      placeholder: "module 1.0.0, FreeScout 1.8.x, PHP 8.5"
+      placeholder: "module 1.0.2, FreeScout 1.8.x, PHP 8.5"
     validations:
       required: true
 
