@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-09-04
+
+Hardening release: no change to what gets suppressed or when. Everything
+below is either CI/tooling, a best-practices/documentation gap, or an
+internal refactor verified behaviour-identical by the existing test suite.
+
 ### Added
 
 - Three release gates that previously did not exist: the tagged commit must
@@ -78,5 +84,6 @@ First release.
   before any database read, and before the lazy `$thread->conversation`
   relation is resolved.
 
-[Unreleased]: https://github.com/lusky3/freescout-quiet-autoclosed/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/lusky3/freescout-quiet-autoclosed/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/lusky3/freescout-quiet-autoclosed/releases/tag/v1.0.1
 [1.0.0]: https://github.com/lusky3/freescout-quiet-autoclosed/releases/tag/v1.0.0
