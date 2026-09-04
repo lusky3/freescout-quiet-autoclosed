@@ -59,8 +59,8 @@ The bias is deliberate: anything unexpected — a missing conversation, a malfor
 
 ## Requirements
 
-- FreeScout with the [Workflows module](https://freescout.net/module/workflows/). Without it this module does nothing at all.
-- Verified against **FreeScout 1.8.232**. It depends on the `subscription.subscriptions` and `subscription.users_to_notify` filters and on `Conversation.closed_by_user_id`, all long-standing core; on a version predating any of them the module is silently inert rather than broken.
+- FreeScout with the [Workflows module](https://freescout.net/module/workflows/). Without it this module does nothing at all — deliberately: `module.json` does **not** declare `requiredModules: {"workflows": ...}`, because that would stop this module from *installing* without Workflows, rather than letting it install and stay inert. Do not add that field; it would break the documented degrade-to-no-op behaviour above.
+- Verified against **FreeScout 1.8.232**, which `module.json`'s `requiredAppVersion` also names — the same convention every official module (Workflows, SpamFilter, MobileNotifications, Mentions) uses, so core can warn an admin before activation on an older install instead of the module silently doing nothing. It depends on the `subscription.subscriptions` and `subscription.users_to_notify` filters and on `Conversation.closed_by_user_id`, all long-standing core; a test pins the README line and `requiredAppVersion` together so they cannot drift apart silently.
 
 The module's own code is conservative PHP with no version-specific syntax. `composer.json` declares `^8.2` because that is what CI covers (8.2 through 8.5, the last being what current FreeScout images ship) — it is a development constraint, not an install requirement, and nothing evaluates it at install time.
 
@@ -160,11 +160,12 @@ See [CONTRIBUTING.md](CONTRIBUTING.md), [CHANGELOG.md](CHANGELOG.md), and [SECUR
 | Lint | PSR-12 via phpcs, `composer validate --strict`, and a YAML parse of every workflow. |
 | Semgrep | `p/php`, `p/security-audit` and `p/github-actions`, open-source rulesets only — no account, no token, `--metrics=off`. |
 | Codacy | Repository-level analysis, scoped by `.codacy.yml` to `Providers/` and `Services/` — the code that actually ships. Also receives the coverage report. |
-| Codecov, Qlty | Coverage trend and per-PR annotations. Reporting only — see below. |
+| Codecov | Coverage trend and per-PR annotations. Reporting only — see below. |
+| Qlty | Two roles: uploads the coverage report (reporting only, same as Codecov), and independently runs static analysis against `.qlty/qlty.toml` — radarlint-php (SonarSource's own engine, the same one behind the SonarQube Cloud row below), plus actionlint, zizmor, editorconfig-checker, trufflehog and osv-scanner. That scan posts its own PR check and is scoped to exclude `Tests/**`, with the reasons written inline in the config file. |
 | Socket | Supply-chain checks, account-wide. |
 | SonarQube Cloud | CI-based analysis with the coverage report attached. Requires Automatic Analysis to stay off for the project — the two modes are mutually exclusive. |
 
-The three coverage publishers are **reporting, not gating**. Each is guarded on its token being present, so a pull request from a fork skips it rather than failing, and each is `continue-on-error`. The gate is the in-repo threshold, which needs no network and no account — an unreachable dashboard should never be the reason a correct change can't merge.
+The three coverage uploads (Codecov, Codacy, Qlty's coverage step) are **reporting, not gating**. Each is guarded on its token being present, so a pull request from a fork skips it rather than failing, and each is `continue-on-error`. The gate is the in-repo threshold, which needs no network and no account — an unreachable dashboard should never be the reason a correct change can't merge. Qlty's separate static-analysis scan is not a coverage upload and is not exempted by this — see the row above.
 
 Every GitHub Action is pinned to a full commit SHA rather than a tag, and each job starts with StepSecurity's Harden-Runner in audit mode. This repo builds an artifact that installs itself onto other people's helpdesks, so its build pipeline is treated as part of the security surface — see [SECURITY.md](SECURITY.md).
 

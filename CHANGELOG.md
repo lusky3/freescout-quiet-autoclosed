@@ -7,20 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `module.json` now declares `requiredAppVersion`, matching every official
+  FreeScout module (Workflows, SpamFilter, MobileNotifications, Mentions) and
+  letting core warn an admin before activation on a FreeScout older than the
+  one this module was verified against, instead of the module silently doing
+  nothing. A test pins it to the version README.md's "Verified against" line
+  names, so the two cannot drift apart.
+- Semgrep scan (`p/php`, `p/security-audit`, `p/github-actions`) on pull
+  requests and weekly, using open-source rulesets with metrics disabled. The
+  GitHub Actions ruleset keeps the SHA pinning below from regressing.
+- Coverage job with a 90% line-coverage floor enforced in-repo, so the gate
+  holds on forks and without any external service. Codecov, Codacy and Qlty
+  all receive the report as reporting-only publishers.
+- SonarQube Cloud CI-based analysis, with the coverage report attached.
+- `.qlty/qlty.toml`, running static analysis (radarlint-php, actionlint,
+  zizmor, editorconfig-checker, trufflehog, osv-scanner) as its own PR check,
+  independent of Qlty's coverage upload above.
+
+### Fixed
+
+- CI's `phpcs -n` flag was suppressing warnings, hiding a constant with no
+  visibility modifier and an over-long line that a separate tool (Codacy)
+  caught from its own phpcs run. `-n` is gone from CI and `composer lint`.
+- `shouldSuppress()` had five early returns against PSR guidance of three;
+  refactored to two plus a private `remember()`, without changing behaviour.
+- A handful of PHPMD/SonarQube findings: an inconsistently-named property,
+  two unused closure parameters, `.editorconfig` claiming an indent size that
+  matched none of Markdown, XML or TOML, and a markdownlint rule that Keep a
+  Changelog's repeated section headings can never satisfy by default.
+
 ### Security
 
 - Every GitHub Action is now pinned to a full commit SHA instead of a mutable
   tag, and each CI job runs StepSecurity's Harden-Runner in audit mode. The
   release pipeline builds the artifact that installs itself onto other
   people's helpdesks, so it is treated as part of the security surface.
-
-### Added
-
-- Semgrep scan (`p/php`, `p/security-audit`, `p/github-actions`) on pull
-  requests and weekly, using open-source rulesets with metrics disabled. The
-  GitHub Actions ruleset keeps the SHA pinning above from regressing.
-- Coverage job with a 90% line-coverage floor enforced in-repo, so the gate
-  holds on forks and without any external service.
 
 ## [1.0.0] - 2026-08-15
 

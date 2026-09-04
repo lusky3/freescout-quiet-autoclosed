@@ -25,6 +25,17 @@ uvx --from semgrep semgrep scan --config p/php --config p/security-audit \
   --config p/github-actions --metrics=off --error Providers Services Tests .github
 ```
 
+To reproduce Qlty's static-analysis check, install the CLI and run it against `.qlty/qlty.toml`:
+
+```sh
+qlty check --all
+```
+
+`radarlint-php` is the same engine SonarQube Cloud runs, so this is the fastest way to see
+Sonar's findings without waiting on CI. `Tests/**` is excluded in `.qlty/qlty.toml` for
+reasons documented inline there — anything reported for `Providers/` or `Services/` is real
+and should be fixed, not excluded.
+
 ### Actions are pinned to SHAs
 
 Every `uses:` in `.github/workflows/` is a full 40-character commit SHA with the version in a trailing comment. Tags are mutable and can be repointed by their owner, which is how several action supply-chain compromises worked — and this repo publishes an artifact that other people's helpdesks install automatically. Semgrep's `p/github-actions` ruleset fails the build on an unpinned tag, so this stays true by itself. Dependabot updates the SHA and the comment together; take its PRs.
