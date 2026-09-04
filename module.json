@@ -4,6 +4,8 @@
   "description": "Suppresses the \"new conversation\" notification for tickets an automatic Workflow has already closed.",
   "version": "1.0.1",
   "requiredAppVersion": "1.8.232",
+  "detailsUrl": "https://github.com/lusky3/freescout-quiet-autoclosed",
+  "img": "/modules/quietautoclosed/img/icon.svg",
   "license": "MIT",
   "author": "lusky3",
   "authorUrl": "https://github.com/lusky3/freescout-quiet-autoclosed",
