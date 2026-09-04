@@ -7,7 +7,7 @@ body:
       value: |
         Version 1.0 hardcodes one rule: silence the "new conversation" alert when an automatic
         workflow has already closed the ticket. Making that configurable is the expected next
-        step — it just hasn't been built around a real use case yet. Yours could be it.
+        step; it just hasn't been built around a real use case yet. Yours could be it.
 
   - type: textarea
     id: use-case

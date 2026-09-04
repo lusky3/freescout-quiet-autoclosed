@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Editing pass over the README, CONTRIBUTING, SECURITY and the issue/PR
+  templates. Same technical content, checked mechanically: every inline code
+  span, URL and number is byte-identical to before, and six of the README's
+  seven code blocks are untouched (the seventh drops an em dash from a string
+  the snippet prints).
+- The pull request template pointed contributors at
+  `Tests/Unit/HookContractTest.php`, deleted back in #2 and replaced by
+  `ProviderHooksTest.php`. It also still described the `201` action type as the
+  thing to keep in sync, which stopped being true when matching moved to
+  `closed_by_user_id`.
+- The bug report template's version placeholder still said `module 1.0.0`.
+
 ## [1.0.2] - 2026-09-04
 
 ### Fixed
