@@ -15,7 +15,7 @@ If you use Workflows to file automated mail — registration confirmations, paym
 
 It's an ordering problem in FreeScout core, not a misconfigured workflow. In `app/Console/Commands/FetchEmails.php`:
 
-```
+```text
 :1318   Eventy::filter('conversation.created_by_customer')   <- SpamFilter hooks here
 :1329   event(new CustomerCreatedConversation)               <- the alert is registered
 :1330   Eventy::action('conversation.created_by_customer')   <- Workflows run here, one line too late
@@ -39,7 +39,7 @@ It drops the recipients for that one alert, at the point the pipeline picks them
 Two filters:
 
 | Hook | Where | Why |
-|---|---|---|
+| --- | --- | --- |
 | `subscription.subscriptions` | `app/Subscription.php:254` | cuts the core recipients |
 | `subscription.users_to_notify` | `app/Subscription.php:303` | registered at priority 50 so it runs last, after modules like Mentions add their own |
 
@@ -154,7 +154,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md), [CHANGELOG.md](CHANGELOG.md), and [SECUR
 ### What CI checks
 
 | Check | What it's for |
-|---|---|
+| --- | --- |
 | Tests, PHP 8.2 – 8.5 | The suite, plus `php -l` on every version, because the module ships as plain files onto whatever PHP the install runs. |
 | Coverage | Line coverage with a hard 90% floor enforced in-repo, so the gate holds on forks and without any external service. |
 | Lint | PSR-12 via phpcs, `composer validate --strict`, and a YAML parse of every workflow. |
