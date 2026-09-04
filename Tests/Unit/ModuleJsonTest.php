@@ -116,8 +116,9 @@ class ModuleJsonTest extends TestCase
 
     /**
      * Release hygiene: the version being shipped must already be written up.
-     * Catches the "tagged a release, forgot the changelog" slip before the
-     * tag exists.
+     * Superseded by the stricter, dedicated checks in ChangelogTest.php,
+     * which also verify the heading has a real date and a link reference -
+     * this one stays as the one-line version of the same guarantee.
      */
     public function test_version_has_a_changelog_entry(): void
     {

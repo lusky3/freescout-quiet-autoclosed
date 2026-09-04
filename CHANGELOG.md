@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Three release gates that previously did not exist: the tagged commit must
+  be an ancestor of `main`, the new version must be semver-greater than
+  every prior release tag, and `phpcs` runs without `-n` on the release path
+  too, so a warning-level defect can no longer slip through by tagging a
+  commit CI never fully checked.
+- `Tests/Unit/ChangelogTest.php`, which pins CHANGELOG.md's structure to
+  module.json's version on every pull request: a dated, non-empty entry, a
+  link reference, and an `[Unreleased]` compare link pointing at the current
+  release. Catches "changelog not updated" before a release is ever tagged,
+  not just at tag time.
 - `module.json` now declares `requiredAppVersion`, matching every official
   FreeScout module (Workflows, SpamFilter, MobileNotifications, Mentions) and
   letting core warn an admin before activation on a FreeScout older than the

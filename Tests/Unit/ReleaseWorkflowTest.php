@@ -143,4 +143,61 @@ class ReleaseWorkflowTest extends TestCase
         $this->assertStringContainsString('unzip -Z1', $workflow, 'The built archive should be inspected.');
         $this->assertStringContainsString('QuietAutoClosed/module.json', $workflow);
     }
+
+    /**
+     * A tag can be pushed from any branch. Without this gate, a release
+     * could ship a commit that never went through a pull request or its
+     * checks - exactly the class of mistake tag-based release triggers are
+     * otherwise prone to.
+     */
+    public function test_the_release_requires_the_tag_to_be_on_main(): void
+    {
+        $workflow = $this->workflow();
+
+        $this->assertStringContainsString('git merge-base --is-ancestor', $workflow);
+        $this->assertStringContainsString('origin/main', $workflow);
+
+        $ancestry = strpos($workflow, 'git merge-base --is-ancestor');
+        $create = strpos($workflow, 'gh release create');
+
+        $this->assertNotFalse($ancestry);
+        $this->assertNotFalse($create);
+        $this->assertLessThan($create, $ancestry, 'The main-ancestry check must run before the release is created.');
+    }
+
+    /**
+     * Matching the tag is not the same as having moved forward: re-tagging
+     * the current version, or fat-fingering a lower one, would otherwise
+     * pass every other check and still publish.
+     */
+    public function test_the_release_requires_the_version_to_increase(): void
+    {
+        $workflow = $this->workflow();
+
+        $this->assertStringContainsString('version_compare(', $workflow);
+
+        $bump = strpos($workflow, 'version_compare(');
+        $create = strpos($workflow, 'gh release create');
+
+        $this->assertNotFalse($bump);
+        $this->assertNotFalse($create);
+        $this->assertLessThan($create, $bump, 'The version-bump check must run before the release is created.');
+    }
+
+    /**
+     * -n suppresses phpcs warnings. That flag is exactly what let a real
+     * defect - a constant with no visibility modifier - ship silently in a
+     * past release until an external tool caught it independently; see
+     * CHANGELOG.md. The release path re-runs phpcs as a safety net against
+     * tagging a commit that skipped CI, and that net has no warning-shaped
+     * holes in it.
+     */
+    public function test_the_release_style_check_does_not_suppress_warnings(): void
+    {
+        $this->assertDoesNotMatchRegularExpression(
+            '/phpcs\s+-n\b/',
+            $this->workflow(),
+            'The release workflow must not suppress phpcs warnings with -n.'
+        );
+    }
 }

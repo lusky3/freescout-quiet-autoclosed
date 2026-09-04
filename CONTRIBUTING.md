@@ -67,10 +67,22 @@ Comments should explain *why* — the *what* is usually obvious from the code, a
 Maintainer only:
 
 1. Bump `version` in `module.json`.
-2. Add that version's entry to `CHANGELOG.md` (`ModuleJsonTest` fails if you forget, and the release workflow refuses to publish without it).
+2. Move `CHANGELOG.md`'s `[Unreleased]` entries under a new `## [X.Y.Z] - YYYY-MM-DD` heading (today's date), and add link references for the new version and the now-empty `[Unreleased]`.
 3. Commit, then push a tag: `git tag v1.2.3 && git push origin v1.2.3`.
 
-The tag triggers `release.yml`, which runs the suite, verifies `module.json`'s version matches the tag, builds the archive, inspects it, creates the release as a **draft**, uploads the archive, then `version.json`, and only then publishes.
+The tag triggers `release.yml`, which re-runs the suite and style checks, then gates the release itself:
+
+| Gate | Catches |
+| --- | --- |
+| Tagged commit is an ancestor of `main` | releasing a side branch that never went through a pull request |
+| `module.json`'s version matches the tag, and both are `X.Y.Z` | forgetting step 1, or a malformed tag |
+| The new version is semver-greater than every prior release tag | re-tagging the current version, or a downgrade |
+| `CHANGELOG.md` has a dated, non-empty entry for the version, with a link reference | forgetting step 2, an empty entry, or a bare heading with no date |
+| The built archive's top-level folder and required files | a `.gitattributes` edit that silently guts the release zip |
+
+Everything in that table except the tag/version checks is also enforced by `ChangelogTest.php` and `ModuleJsonTest.php` on every pull request — so a maintainer preparing a release finds out immediately, not after pushing a tag. The tag-ancestry and version-bump checks are necessarily tag-time-only: neither question makes sense to ask of a commit that hasn't been tagged yet.
+
+Once those pass, the workflow builds the archive, inspects it, creates the release as a **draft**, uploads the archive, then `version.json`, and only then publishes.
 
 That order is deliberate. `version.json` is the file every install polls to discover a new version, so it must be the last thing to appear — and the release must only become "Latest" once a verified archive is already attached. Triggering on the tag rather than on a published release is what makes a failed check harmless: nothing is ever advertised that isn't there.
 

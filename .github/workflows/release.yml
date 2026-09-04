@@ -51,6 +51,30 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      # actions/checkout's default refspec only fetches the pushed ref:
+      # origin/main is not guaranteed present for the ancestry check below,
+      # and the version-bump check further down needs every prior release
+      # tag, not just this one. fetch-depth: 0 only affects history depth on
+      # the ref actually checked out, not which other refs exist locally.
+      - name: Fetch main and all tags
+        run: |
+          git fetch origin +refs/heads/main:refs/remotes/origin/main
+          git fetch origin --tags --force
+
+      # A tag can be pushed from any branch. Requiring it to already be on
+      # main means a release can only ever ship a commit that went through
+      # the normal PR gates - the alternative is a side branch's untested
+      # work reaching every existing install's next update check.
+      - name: Verify the tagged commit is on main
+        run: |
+          set -euo pipefail
+          commit=$(git rev-parse "$TAG_NAME^{commit}")
+          if ! git merge-base --is-ancestor "$commit" origin/main; then
+            echo "::error::$TAG_NAME (commit $commit) is not reachable from main."
+            echo "Merge the branch that produced this commit into main, then re-tag from there."
+            exit 1
+          fi
+
       - name: Set up PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
@@ -69,8 +93,12 @@ jobs:
       - name: Run tests
         run: vendor/bin/phpunit --testsuite Unit
 
+      # No -n: warnings are release gates too. This job used to pass -n,
+      # which is exactly the flag that let a real defect (a constant with no
+      # visibility modifier) ship silently until an external tool caught it
+      # from its own phpcs run - see CHANGELOG.md.
       - name: Check style
-        run: vendor/bin/phpcs -n
+        run: vendor/bin/phpcs
 
       # module.json's committed version must match the tag, or the zip's own
       # bundled module.json would report the wrong version to the *next*
@@ -92,6 +120,36 @@ jobs:
           if [ "$tag_version" != "$json_version" ]; then
             echo "::error::module.json version ($json_version) does not match the release tag ($tag_version)."
             echo "Bump module.json's \"version\" field, commit it, and re-tag."
+            exit 1
+          fi
+
+      # A tag matching module.json is not the same as module.json having
+      # actually moved forward. Without this, re-tagging the current version
+      # after an unrelated code change - or fat-fingering a lower version -
+      # would pass every check above and still publish, silently reusing or
+      # regressing a version number every existing install has already seen.
+      - name: Verify the version was bumped forward
+        run: |
+          set -euo pipefail
+          new_version="${TAG_NAME#v}"
+          # $TAG_NAME is excluded from the comparison set deliberately: it
+          # already exists in the tag list this workflow just fetched, since
+          # it is the tag being processed. Excluding it is what lets this
+          # workflow be safely re-run against the same tag - after a
+          # transient failure, say - without a same-version comparison
+          # tripping this into a false "not bumped" error.
+          latest_prior=$(git tag -l 'v*' \
+            | grep -v -x "$TAG_NAME" \
+            | sed 's/^v//' \
+            | sort -V \
+            | tail -1)
+          if [ -z "$latest_prior" ]; then
+            echo "No prior release tag found; $TAG_NAME is the first release."
+            exit 0
+          fi
+          if ! php -r 'exit(version_compare($argv[1], $argv[2], ">") ? 0 : 1);' "$new_version" "$latest_prior"; then
+            echo "::error::$new_version is not greater than the latest existing release ($latest_prior)."
+            echo "Bump module.json's \"version\" field to something higher than $latest_prior, commit it, and re-tag."
             exit 1
           fi
 
