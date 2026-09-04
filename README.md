@@ -66,9 +66,19 @@ The module's own code is conservative PHP with no version-specific syntax. `comp
 
 ## Install
 
+Updates work the same way regardless of how you install this: FreeScout core itself checks
+`latestVersionUrl` for every non-official module on every load of **Manage → Modules**, and
+shows an **Update Now** button when `module.json`'s declared version is newer than what's
+installed (`app/Http/Controllers/ModulesController.php`'s `modules()` method, and
+`App\Module::updateModule()`, which downloads and extracts `latestVersionZipUrl` in place —
+verified directly against core, not inferred). No Module Manager, no license key, nothing
+module-specific: this is how *any* third-party module with those two `module.json` fields
+updates. Module Manager's own role is narrower — installing a module from a GitHub URL in the
+first place, which stock core has no UI for.
+
 ### With Module Manager
 
-If you use [FreeScout Module Manager](https://github.com/lusky3/freescout-module-manager), add this repository and install it from the modules list. Updates come through the normal update check.
+If you use [FreeScout Module Manager](https://github.com/lusky3/freescout-module-manager), add this repository and install it from the modules list.
 
 ### By hand
 

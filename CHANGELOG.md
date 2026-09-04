@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- README.md attributed update-checking to Module Manager. It is entirely
+  FreeScout core: any third-party module with
+  `latestVersionUrl`/`latestVersionZipUrl` gets checked and offered an "Update
+  Now" button on every load of Manage → Modules, with or without Module Manager
+  installed. Verified directly against `ModulesController::modules()` and
+  `App\Module::updateModule()`.
+
 ## [1.0.1] - 2026-09-04
 
 Hardening release: no change to what gets suppressed or when. Everything
