@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-09-04
+
+Documentation only. No runtime code changed since 1.0.2; `Providers/`,
+`Services/` and `Public/` are byte-identical between the two tags.
+
 ### Fixed
 
 - Editing pass over the README, CONTRIBUTING, SECURITY and the issue/PR
@@ -19,7 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `ProviderHooksTest.php`. It also still described the `201` action type as the
   thing to keep in sync, which stopped being true when matching moved to
   `closed_by_user_id`.
-- The bug report template's version placeholder still said `module 1.0.0`.
+- The bug report template's version placeholder said `module 1.0.0`. It now
+  reads `module 1.0.x`, matching the `FreeScout 1.8.x` already beside it;
+  pinning it to an exact release meant it went stale every time one shipped,
+  which is how it drifted in the first place.
 
 ## [1.0.2] - 2026-09-04
 
@@ -120,7 +128,8 @@ First release.
   before any database read, and before the lazy `$thread->conversation`
   relation is resolved.
 
-[Unreleased]: https://github.com/lusky3/freescout-quiet-autoclosed/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/lusky3/freescout-quiet-autoclosed/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/lusky3/freescout-quiet-autoclosed/releases/tag/v1.0.3
 [1.0.2]: https://github.com/lusky3/freescout-quiet-autoclosed/releases/tag/v1.0.2
 [1.0.1]: https://github.com/lusky3/freescout-quiet-autoclosed/releases/tag/v1.0.1
 [1.0.0]: https://github.com/lusky3/freescout-quiet-autoclosed/releases/tag/v1.0.0
