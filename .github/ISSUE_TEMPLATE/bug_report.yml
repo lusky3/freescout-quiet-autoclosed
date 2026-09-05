@@ -48,7 +48,7 @@ body:
     attributes:
       label: Versions
       description: Module version (from module.json), FreeScout version, PHP version.
-      placeholder: "module 1.0.2, FreeScout 1.8.x, PHP 8.5"
+      placeholder: "module 1.0.x, FreeScout 1.8.x, PHP 8.5"
     validations:
       required: true
 
