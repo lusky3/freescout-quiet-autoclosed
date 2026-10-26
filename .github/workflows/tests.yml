@@ -15,7 +15,7 @@ concurrency:
 jobs:
   unit-tests:
     name: Unit tests (PHP ${{ matrix.php-version }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     strategy:
       fail-fast: false
@@ -75,7 +75,7 @@ jobs:
 
   coverage:
     name: Coverage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
 
     # Read as guards below. A pull request from a fork gets no secrets, so
