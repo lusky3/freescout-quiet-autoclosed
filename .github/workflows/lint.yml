@@ -23,7 +23,7 @@ jobs:
       # artifact that installs itself onto other people's helpdesks, so knowing
       # exactly what a build talks to is worth the ten seconds.
       - name: Harden the runner
-        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
 
